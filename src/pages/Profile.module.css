@@ -4,12 +4,14 @@
     text-align: center;
     padding-bottom: 20px;
 }
+
 .mainSection {
     width: 100%;
     max-width: 48rem;
     padding: 1.5rem;
-    border: 1px solid var(--mintBlue);
+    margin-bottom: 80px;
 }
+
 .medicationItem {
     margin-bottom: 1rem;
     padding: 1rem;

@@ -8,14 +8,19 @@
   /* NO border:0 aquí */
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
-  overflow-x: hidden; /* evita scroll horizontal */
+  overflow-x: hidden;
+  /* evita scroll horizontal */
   /* NO width:100vw; NO overflow:auto */
 }
 
-ol, ul { list-style: none; }
+ol,
+ul {
+  list-style: none;
+}
 
 :root {
   --primaryBlue: #61BACA;
@@ -32,4 +37,23 @@ ol, ul { list-style: none; }
   -moz-osx-font-smoothing: grayscale;
 }
 
-body { font-family: Helvetica, Arial, sans-serif; }
+body {
+  font-family: Helvetica, Arial, sans-serif;
+}
+
+main {
+  padding-top: 10px !important;
+  background-image: url('../public/background/v870-tang-35.jpg');
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-position: center;
+  background-size: 100%;
+}
+
+@media (max-width: 992px) {
+  main {
+  background-image: url('../public/background/v870-tang-37.jpg');
+  background-size: 100vh;
+  }
+}
+
