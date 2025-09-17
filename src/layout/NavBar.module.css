@@ -1,11 +1,12 @@
 .navbar {
-  font-family: 'Aboreto', serif;
-  font-size: 1.5em;
-  padding: 1rem 2rem;
-  position: relative;
-  background-color: #4B0082; 
-  color: #fff;
-  z-index: 100;
+  font-size: 2em;
+  padding: 1rem 5%;
+  position: fixed;   
+  top: 0;           
+  left: 0;
+  width: 100%;       
+  z-index: 1000;  
+  background-color: #9FD8E1; 
 }
 
 .menu {
@@ -21,13 +22,8 @@
   color: #fff; 
   padding: 5px 10px;
 }
-
-.menu li a:hover {
-  text-decoration: underline;
-}
-
 .activeLink {
-  border-bottom: 2px solid #FFD700; 
+  border-bottom: 2px solid #1D837F; 
 }
 
 /* Botón hamburguesa */
@@ -41,6 +37,7 @@
   border: none;
   cursor: pointer;
   padding: 0;
+  z-index: 1000;
   margin-top: 5px;
 }
 
@@ -52,15 +49,19 @@
   transition: all 0.3s ease;
 }
 
+/* Estado abierto (X) */
 .hamburger.open .bar:nth-child(1) {
   transform: rotate(45deg) translate(5px, 5px);
 }
+
 .hamburger.open .bar:nth-child(2) {
   opacity: 0;
 }
+
 .hamburger.open .bar:nth-child(3) {
-  transform: rotate(-45deg) translate(5px, -5px);
+  transform: rotate(-45deg) translate(8px, -8px);
 }
+
 
 /* Responsive */
 @media (max-width: 768px) {
