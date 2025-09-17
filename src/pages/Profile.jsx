@@ -44,7 +44,7 @@ export default function Profile() {
   }
 
   return (
-    <div className="flex justify-center mt-24">
+    <div className="flex justify-center">
       <div className={styles.mainSection}>
         <h1 className="text-2xl font-bold text-teal-900 mb-6">Mi Perfil</h1>
 
