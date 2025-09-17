@@ -5,6 +5,7 @@ import { CiPill } from "react-icons/ci";
 import { CiCalendarDate } from "react-icons/ci";
 import { CiUser } from "react-icons/ci";
 import { Link } from "react-router-dom";
+import { CiHome } from "react-icons/ci";
 
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
@@ -39,7 +40,7 @@ export default function Navbar() {
                         onClick={() => setIsOpen(false)}
                         className={({ isActive }) => isActive ? styles.activeLink : ""}
                     >
-                        Inicio
+                       <CiHome /> Inicio
                     </NavLink>
                 </li>
                 <li>
