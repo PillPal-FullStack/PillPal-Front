@@ -1,32 +1,23 @@
 @import "tailwindcss";
-/* RESET CSS */
-* {
+
+/* Reset mínimo que no rompe los bordes de Tailwind */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  /* NO border:0 aquí */
+}
+
+html, body {
   margin: 0;
   padding: 0;
-  border: 0;
-  font-size: 100%;
-  font: inherit;
+  overflow-x: hidden; /* evita scroll horizontal */
+  /* NO width:100vw; NO overflow:auto */
 }
 
-html,
-body {
-  overflow: auto;
-}
-
-ol,
-ul {
-  list-style: none;
-}
-
-html,
-body {
-  overflow-x: hidden;
-  width: 100vw;
-  box-sizing: border-box;
-}
+ol, ul { list-style: none; }
 
 :root {
-  /* Primary colors */
   --primaryBlue: #61BACA;
   --mintBlue: #9CD1CE;
   --paleCyan: #9FD8E1;
@@ -41,6 +32,4 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-body {
-  font-family: Helvetica, Arial, sans-serif;
-}
+body { font-family: Helvetica, Arial, sans-serif; }
