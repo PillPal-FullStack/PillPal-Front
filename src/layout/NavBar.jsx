@@ -13,7 +13,7 @@ export default function Navbar() {
     const toggleMenu = () => setIsOpen(!isOpen);
 
     return (
-        <nav className={styles.navbar}>
+        <nav className={styles.navbar} >
 
             {/* Botón hamburguesa */}
             <button
