@@ -47,13 +47,13 @@ main {
   background-repeat: no-repeat;
   background-attachment: fixed;
   background-position: center;
-  background-size: 100%;
+  background-size: cover; 
+  min-height: 100vh;  
 }
 
 @media (max-width: 992px) {
   main {
   background-image: url('../public/background/v870-tang-37.jpg');
-  background-size: 100vh;
   }
 }
 

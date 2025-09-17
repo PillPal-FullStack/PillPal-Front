@@ -40,7 +40,7 @@ export default function Navbar() {
                         onClick={() => setIsOpen(false)}
                         className={({ isActive }) => isActive ? styles.activeLink : ""}
                     >
-                       <CiHome /> Inicio
+                        <CiHome /> Inicio
                     </NavLink>
                 </li>
                 <li>
