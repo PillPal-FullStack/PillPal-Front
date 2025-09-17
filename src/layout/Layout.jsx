@@ -1,9 +1,14 @@
-import React from 'react'
+import { Outlet } from "react-router-dom";
+import Navbar from "./NavBar";
 
-const Layout = () => {
+
+export default function Layout() {
   return (
-    <div>Layout</div>
-  )
+    <div>
+      <Navbar />
+      <main style={{ padding: "1rem" }}>
+        <Outlet />
+      </main>
+    </div>
+  );
 }
-
-export default Layout

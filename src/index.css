@@ -1,1 +1,46 @@
 @import "tailwindcss";
+/* RESET CSS */
+* {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+}
+
+html,
+body {
+  overflow: auto;
+}
+
+ol,
+ul {
+  list-style: none;
+}
+
+html,
+body {
+  overflow-x: hidden;
+  width: 100vw;
+  box-sizing: border-box;
+}
+
+:root {
+  /* Primary colors */
+  --primaryBlue: #61BACA;
+  --mintBlue: #9CD1CE;
+  --paleCyan: #9FD8E1;
+  --tealDark: #1D837F;
+  --turquoise: #3EAEB1;
+  --backgroundLight: #D7EAEE;
+  font-family: Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: Helvetica, Arial, sans-serif;
+}
