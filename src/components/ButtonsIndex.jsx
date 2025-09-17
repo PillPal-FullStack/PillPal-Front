@@ -29,7 +29,7 @@ function ButtonsIndex() {
         Iniciar sesión
       </button>
       <button
-        onClick={() => navigate("/register")}
+        onClick={() => navigate("/auth/register")}
         className="w-[362px] h-[48px] bg-gray-200 text-gray-800 font-semibold rounded-xl hover:bg-gray-300 transition-colors cursor-pointer"
       >
         Registrarse
