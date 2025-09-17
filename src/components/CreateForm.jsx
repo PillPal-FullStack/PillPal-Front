@@ -37,26 +37,26 @@ const CreateForm = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
-      <div className="max-w-md mx-auto bg-white rounded-lg shadow-sm">
-        <div className="p-6">
-          <h1 className="text-lg font-semibold text-gray-800 text-center mb-8">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-md mx-auto bg-white rounded-lg shadow-lg">
+        <div className="p-4 sm:p-6">
+          <h1 className="text-lg sm:text-xl font-semibold text-gray-800 text-center mb-6 sm:mb-8">
             NUEVA MEDICACIÓN
           </h1>
 
-          <div onSubmit={handleSubmit} className="space-y-6">
+          <div onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             {/* Nombre de la medicación */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Nombre de la medicación *
               </label>
               <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <input
                   type="text"
                   value={medicationName}
                   onChange={(e) => setMedicationName(e.target.value)}
-                  className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm sm:text-base"
                   placeholder=""
                 />
               </div>
@@ -64,10 +64,10 @@ const CreateForm = () => {
 
             {/* Selecciona la forma de la dosis */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-3 sm:mb-4">
                 Selecciona la forma de la dosis *
               </label>
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 sm:gap-3">
                 {dosageForms.map((form) => {
                   const IconComponent = form.icon;
                   return (
@@ -75,14 +75,14 @@ const CreateForm = () => {
                       key={form.id}
                       type="button"
                       onClick={() => setSelectedForm(form.id)}
-                      className={`flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-colors ${
+                      className={`flex flex-col items-center justify-center p-3 sm:p-4 rounded-lg border-2 transition-colors min-h-[80px] sm:min-h-[90px] ${
                         selectedForm === form.id
                           ? 'border-blue-500 bg-blue-50'
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
                     >
-                      <IconComponent className="h-6 w-6 text-gray-600 mb-2" />
-                      <span className="text-xs text-gray-600 text-center">
+                      <IconComponent className="h-5 w-5 sm:h-6 sm:w-6 text-gray-600 mb-1 sm:mb-2" />
+                      <span className="text-xs text-gray-600 text-center leading-tight">
                         {form.name}
                       </span>
                     </button>
