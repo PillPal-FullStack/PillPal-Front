@@ -1,29 +1,51 @@
 .navbar {
-  font-size: 2em;
-  padding: 1rem 5%;
-  position: fixed;   
-  top: 0;           
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  font-size: 1.5em;
+  padding: 1rem 2%;
+  position: fixed;
+  top: 0;
   left: 0;
-  width: 100%;       
-  z-index: 1000;  
-  background-color: #9FD8E1; 
+  width: 100%;
+  box-sizing: border-box;
+  z-index: 1000;
+  background-color: #9FD8E1;
 }
 
 .menu {
   display: flex;
-  gap: 20px;
+  gap: 30px;
   list-style: none;
   padding: 0;
-  margin: 0;
+  margin-left: auto;
+  padding-right: 5rem;
+  max-width: calc(100% - 60px);
 }
 
 .menu li a {
   text-decoration: none;
-  color: #fff; 
+  color: #fff;
   padding: 5px 10px;
+  display: inline-flex;
+  align-items: center;
 }
+
 .activeLink {
-  border-bottom: 2px solid #1D837F; 
+  border-bottom: 2px solid #1D837F;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  margin-right: auto;
+  margin-left: 20px;
+}
+
+.logo img {
+  height: 60px;
+  width: auto;
+  object-fit: contain;
 }
 
 /* Botón hamburguesa */
@@ -39,6 +61,7 @@
   padding: 0;
   z-index: 1000;
   margin-top: 5px;
+  margin-right: auto;
 }
 
 .bar {
@@ -62,12 +85,12 @@
   transform: rotate(-45deg) translate(8px, -8px);
 }
 
-
 /* Responsive */
 @media (max-width: 768px) {
   .hamburger {
     display: flex;
   }
+
   .menu {
     display: none;
     flex-direction: column;
@@ -79,7 +102,12 @@
     top: 50px;
     left: 20px;
   }
+
   .menu.open {
     display: flex;
+  }
+
+  .logo {
+    margin-left: 0px;
   }
 }
