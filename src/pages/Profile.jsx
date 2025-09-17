@@ -44,9 +44,9 @@ export default function Profile() {
   }
 
   return (
-    <div className="flex justify-center mt-24">
+    <div className="flex justify-center">
       <div className={styles.mainSection}>
-        <h1 className={styles.title}>Mi Perfil</h1>
+        <h1 className="text-2xl font-bold text-teal-900 mb-6">Mi Perfil</h1>
 
         <div className="mb-8">
           <p className="text-xl font-semibold mb-2">Nombre de usuario</p>
@@ -60,7 +60,7 @@ export default function Profile() {
         </div>
 
         <div>
-          <h2 className={styles.title}>Medicación registrada</h2>
+          <h2 className="text-2xl font-bold text-teal-900 mb-6">Medicación registrada</h2>
           {user.medications.length === 0 ? (
             <p className="text-gray-500">No tienes medicaciones registradas.</p>
           ) : (

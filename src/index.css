@@ -1,16 +1,20 @@
 @import "tailwindcss";
-/* RESET CSS */
-* {
-  margin: 0;
-  padding: 0;
-  border: 0;
-  font-size: 100%;
-  font: inherit;
+
+/* Reset mínimo que no rompe los bordes de Tailwind */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  /* NO border:0 aquí */
 }
 
 html,
 body {
-  overflow: auto;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  /* evita scroll horizontal */
+  /* NO width:100vw; NO overflow:auto */
 }
 
 ol,
@@ -18,15 +22,7 @@ ul {
   list-style: none;
 }
 
-html,
-body {
-  overflow-x: hidden;
-  width: 100vw;
-  box-sizing: border-box;
-}
-
 :root {
-  /* Primary colors */
   --primaryBlue: #61BACA;
   --mintBlue: #9CD1CE;
   --paleCyan: #9FD8E1;
@@ -44,3 +40,20 @@ body {
 body {
   font-family: Helvetica, Arial, sans-serif;
 }
+
+main {
+  padding-top: 10px !important;
+  background-image: url('../public/background/v870-tang-35.jpg');
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-position: center;
+  background-size: 100%;
+}
+
+@media (max-width: 992px) {
+  main {
+  background-image: url('../public/background/v870-tang-37.jpg');
+  background-size: 100vh;
+  }
+}
+
