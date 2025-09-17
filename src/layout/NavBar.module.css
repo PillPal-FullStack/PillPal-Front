@@ -10,7 +10,7 @@
   width: 100%;
   box-sizing: border-box;
   z-index: 1000;
-  background-color: #9FD8E1;
+  background-color: var(--paleCyan);
 }
 
 .menu {
@@ -32,7 +32,7 @@
 }
 
 .activeLink {
-  border-bottom: 2px solid #1D837F;
+  border-bottom: 2px solid var(--tealDark);
 }
 
 .logo {
