@@ -4,7 +4,7 @@ import styles from "./Navbar.module.css";
 import { CiPill } from "react-icons/ci";
 import { CiCalendarDate } from "react-icons/ci";
 import { CiUser } from "react-icons/ci";
-
+import { Link } from "react-router-dom";
 
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
@@ -26,7 +26,9 @@ export default function Navbar() {
 
             {/* Logo */}
             <div className={styles.logo}>
-                <img src="./public/pillpal.png" alt="Logo" />
+                <Link to="/">
+                    <img src="/pillpal.png" alt="Logo" />
+                </Link>
             </div>
 
             {/* Menú */}

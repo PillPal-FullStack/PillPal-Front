@@ -5,6 +5,7 @@ import Create from "../pages/Create";
 import History from "../pages/History";
 import Profile from "../pages/Profile";
 import Reminders from "../pages/Reminders";
+import Login from "../pages/auth/Login";
 
 export default function AppRouter() {
   return (
@@ -16,6 +17,7 @@ export default function AppRouter() {
           <Route path="/history" element={<History />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/reminders" element={<Reminders />} />
+          <Route path="/auth/login" element={<Login />}/>
         </Route>
       </Routes>
     </BrowserRouter>
