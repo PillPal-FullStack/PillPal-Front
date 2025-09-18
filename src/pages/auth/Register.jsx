@@ -2,20 +2,42 @@ import React, { useState } from 'react'
 import { useNavigate } from "react-router-dom"
 
 const Register = () => {
-  const [form, setForm] = useState({name: "", email: "", password:""});
+  const [form, setForm] = useState({username: "", email: "", password:""});
   const navigate = useNavigate();
 
    const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Datos enviados:", form);
 
-    navigate("/");
+    try {
+      const res = await fetch("http://localhost:8080/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(form),
+      });
+
+      if (!res.ok) {
+        throw new Error("Register error");
+      }
+
+      const data = await res.json();
+      console.log("registered user:", data);
+
+      localStorage.setItem("token", data.token);
+
+      navigate("/profile");
+    } catch (err) {
+      console.error(err);
+      alert("Register error. Please try again.");
+    }
   };
 
+  
 
 
   return (
@@ -28,9 +50,9 @@ const Register = () => {
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <input
             type="text"
-            name="name"
+            name="username"
             placeholder="Nombre"
-            value={form.name}
+            value={form.username}
             onChange={handleChange}
             className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
             required
