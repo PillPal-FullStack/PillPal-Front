@@ -1,3 +1,34 @@
+import { createBrowserRouter, Navigate } from "react-router-dom";
+import Layout from "../layout/Layout";
+import Main from "../pages/Main";
+import Create from "../pages/Create";
+import History from "../pages/History";
+import Profile from "../pages/Profile";
+import Reminders from "../pages/Reminders";
+
+
+const token = localStorage.getItem("token");
+
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <Layout />,
+    children: [
+      {
+        index: true,
+        element: token ? <Main /> : <Navigate to="/auth/login" />,
+      },
+      { path: "create", element: <Create /> },
+      { path: "history", element: <History /> },
+      { path: "profile", element: <Profile /> },
+      { path: "reminders", element: <Reminders /> }
+    ],
+  },
+]);
+
+export default router;
+
+/*
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from "../layout/Layout";
 import Main from "../pages/Main";
@@ -25,3 +56,4 @@ export default function AppRouter() {
     </BrowserRouter>
   );
 }
+*/
