@@ -8,7 +8,7 @@
 **PillPal** es una aplicación web para **trackear la toma de medicamentos** de varias personas. Permite crear cuentas, registrar medicamentos, programar recordatorios y controlar la ingesta diaria según las indicaciones.
 
 <div align="center">
-  <img src="https://github.com/user-attachments/assets/b770bbff-1f24-4ec1-9222-d026918c838b" width="400" height="400" alt="pillpal" />
+  <img src="https://github.com/user-attachments/assets/b770bbff-1f24-4ec1-9222-d026918c838b" width="300" height="300" alt="pillpal" />
 </div>
 
 ---
@@ -72,5 +72,6 @@ El backend se encuentra en un repositorio separado y ofrece API REST para:
 - Angelina Pereira | FemMad
 - Mio Ogura | FemBcn
 - Miguel Ballesteros | DigiAst
+
 
 
