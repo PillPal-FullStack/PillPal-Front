@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import { Check } from "lucide-react";
+import "./MedicineCard.css";
 
 /**
  * MedicineCard
@@ -18,12 +19,18 @@ export default function MedicineCard({ entry, isToday, onToggle }) {
   // status lógico:
   // - si es hoy => "taken" | "pending"
   // - si está en el futuro => "upcoming"
-  // - si está en el pasado => "past" (archivado)
+  // - si está en el pasado => "taken" | "ignored"
   const status = useMemo(() => {
     const todayStr = new Date().toISOString().split("T")[0];
-    if (entry.date === todayStr) return entry.taken ? "taken" : "pending";
-    if (startOfEntryDay > now) return "upcoming";
-    return "past";
+
+    if (entry.date === todayStr) {
+      return entry.taken ? "taken" : "pending"; // hoy todavía se puede marcar
+    }
+
+    if (startOfEntryDay > now) return "upcoming"; // días futuros
+
+    // días pasados
+    return entry.taken ? "taken" : "ignored"; // si no se tomó, se marca como ignorada
   }, [entry.date, entry.taken, startOfEntryDay, now]);
 
   // calcula el tiempo restante hasta el inicio del día (para "upcoming")
@@ -43,7 +50,7 @@ export default function MedicineCard({ entry, isToday, onToggle }) {
   // handler click en el check (solo interactúa si isToday y no es 'upcoming')
   const handleToggle = () => {
     if (!isToday) return;
-    if (status === "upcoming" || status === "past") return;
+    if (status === "upcoming" || status === "past" || status === "ignored") return;
     onToggle && onToggle(entry.date);
   };
 
@@ -51,6 +58,7 @@ export default function MedicineCard({ entry, isToday, onToggle }) {
   const statusPill = {
     taken: "bg-green-600 text-white",
     pending: "bg-red-500 text-white",
+    ignored: "bg-red-500 text-white", // igual que pending pero ya no se puede marcar
     upcoming: "bg-white text-gray-800 border border-gray-200",
     past: "bg-gray-200 text-gray-700",
   }[status];
@@ -79,7 +87,6 @@ export default function MedicineCard({ entry, isToday, onToggle }) {
       {/* Contenido central (puede ampliarse: nombre dosis etc.) */}
       <div className="flex-1 flex items-center justify-between">
         <div>
-          {/* Placeholder: puedes pasar nombre/dosis si quieres */}
           <div className="text-sm font-medium text-teal-900">Medicamento</div>
           <div className="text-xs text-teal-700">1 comprimido · mañana</div>
         </div>
@@ -90,7 +97,7 @@ export default function MedicineCard({ entry, isToday, onToggle }) {
             <span
               className={`px-3 py-1 rounded-full font-medium ${statusPill}`}
             >
-              Tomado
+              Tomada
             </span>
           )}
           {status === "pending" && (
@@ -100,9 +107,16 @@ export default function MedicineCard({ entry, isToday, onToggle }) {
               Pendiente
             </span>
           )}
-          {status === "upcoming" && (
+          {status === "ignored" && (
             <span
               className={`px-3 py-1 rounded-full font-medium ${statusPill}`}
+            >
+              Ignorada
+            </span>
+          )}
+          {status === "upcoming" && (
+            <span
+              className={`px-3 py-1 rounded-full font-medium text-[13px] ${statusPill} whitespace-nowrap`}
               title={timeLeftText}
             >
               {timeLeftText}
@@ -112,7 +126,7 @@ export default function MedicineCard({ entry, isToday, onToggle }) {
             <span
               className={`px-3 py-1 rounded-full font-medium ${statusPill}`}
             >
-              Archivo
+              Archivado
             </span>
           )}
         </div>
@@ -122,9 +136,9 @@ export default function MedicineCard({ entry, isToday, onToggle }) {
       <button
         aria-label={status === "taken" ? "Desmarcar tomado" : "Marcar tomado"}
         onClick={handleToggle}
-        disabled={!isToday || status === "upcoming" || status === "past"}
+        disabled={!isToday || status === "upcoming" || status === "past" || status === "ignored"}
         className={`ml-4 p-2 rounded-full border transition ${
-          !isToday || status === "upcoming" || status === "past"
+          !isToday || status === "upcoming" || status === "past" || status === "ignored"
             ? "opacity-40 cursor-not-allowed border-gray-200"
             : "hover:bg-green-50 border-gray-300"
         }`}
