@@ -10,6 +10,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { TbPills } from "react-icons/tb";
+import Swal from "sweetalert2";
 
 // === Tipos de estado ===
 const STATUS = {
@@ -228,19 +229,47 @@ export default function History() {
                       {!e.taken && (
                         <button
                           type="button"
-                          onClick={() => markTaken(e.id)}
-                          className="inline-flex items-center gap-1 px-3 py-2 text-xs rounded-lg border border-gray-300 bg-gray-100 hover:border-gray-400"
+                          onClick={() => {
+                            const medName = e.name; 
+                            markTaken(e.id); 
+                            Swal.fire({
+                              icon: "success",
+                              title: "Medicina tomada",
+                              text: `${medName} registrada como tomada.`,
+                              timer: 1500,
+                              showConfirmButton: false,
+                            });
+                          }}
+                          className="inline-flex items-center gap-1 px-3 py-2 text-xs rounded-lg border border-gray-300 bg-gray-100 hover:border-gray-400 cursor-pointer"
                         >
                           <CheckCircle2 className="h-4 w-4" /> Tomar
                         </button>
                       )}
+
                       <button
                         type="button"
-                        onClick={() => deleteEvent(e.id)}
-                        className="inline-flex items-center gap-1 px-3 py-2 text-xs rounded-lg border border-gray-300 bg-white hover:border-red-400 hover:text-red-700"
+                        onClick={() => {
+                          Swal.fire({
+                            title: "¿Estás seguro?",
+                            text: "Esta acción no se puede revertir.",
+                            icon: "warning",
+                            showCancelButton: true,
+                            confirmButtonColor: "#3085d6",
+                            cancelButtonColor: "#d33",
+                            confirmButtonText: "Sí, borrar",
+                            cancelButtonText: "Cancelar",
+                          }).then((result) => {
+                            if (result.isConfirmed) {
+                              deleteEvent(e.id);
+                              Swal.fire("¡Borrado!", "El registro ha sido eliminado.", "success");
+                            }
+                          });
+                        }}
+                        className="inline-flex items-center gap-1 px-3 py-2 text-xs rounded-lg border border-gray-300 bg-white hover:border-red-400 hover:text-red-700 cursor-pointer"
                       >
                         <Trash2 className="h-4 w-4" /> Borrar
                       </button>
+
                     </div>
                   </li>
                 ))}
@@ -336,7 +365,7 @@ export default function History() {
                     to: "",
                   })
                 }
-                className="text-xs px-3 py-2 rounded-lg border border-gray-300 bg-white hover:border-gray-400"
+                className="text-xs px-3 py-2 rounded-lg border border-gray-300 bg-white hover:border-gray-400 cursor-pointer"
               >
                 Limpiar filtros
               </button>
