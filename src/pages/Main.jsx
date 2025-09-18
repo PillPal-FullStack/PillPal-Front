@@ -4,10 +4,14 @@ import {
   getMedications, 
   getMedicationsStatus, 
   markTaken, 
-  markSkipped 
+  markSkipped,
+  forceDeleteMedication
 } from "../services/CardService";
+ import { useNavigate } from "react-router-dom";
+
 
 export default function Main() {
+  const navigate = useNavigate();
   const [medications, setMedications] = useState([]);
   const [showInactive, setShowInactive] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -15,7 +19,7 @@ export default function Main() {
   const [actionLoading, setActionLoading] = useState({});
   
   // Token temporal - en producción debería venir de un contexto de autenticación
-  const token = "eyJhbGciOiJIUzI1NiJ9.eyJpZCI6MSwicm9sZSI6IltST0xFX1VTRVJdIiwic3ViIjoidGVzdHVzZXIiLCJpYXQiOjE3NTgxOTg1NDUsImV4cCI6MTc1ODIwMDM0NX0.sh7Q9jlZ3kxbiGq8qenoIg018ZfrQbyeM0qXHLizdUA";
+  // const token = "eyJhbGciOiJIUzI1NiJ9.eyJpZCI6MSwicm9sZSI6IltST0xFX1VTRVJdIiwic3ViIjoidGVzdHVzZXIiLCJpYXQiOjE3NTgyMDU0MzksImV4cCI6MTc1ODIwNzIzOX0.K1KYL17_UqkvhCYYPLm6FLQ1VS_Apvah2wY3DCO4Mpc";
 
   // Filtrar medicamentos según el estado activo/inactivo
   const filteredMedications = medications.filter(med => 
@@ -29,22 +33,21 @@ export default function Main() {
     
     try {
       // Cargar medicamentos básicos
-      const medicationsData = await getMedications(token);
+      const medicationsData = await getMedications();
       
       // Cargar estado/historial de cada medicamento
       const medicationsWithStatus = await Promise.all(
         medicationsData.map(async (med) => {
           try {
             // Si tienes un endpoint específico para obtener el historial de tomas
-            // const intakes = await getMedicationIntakes(med.id, token);
             
             // Por ahora usamos el endpoint de status general
-            const statusData = await getMedicationsStatus(token);
+            const statusData = await getMedicationsStatus();
             const medStatus = statusData.find(status => status.id === med.id);
             
             return {
               ...med,
-              takenDates: medStatus?.takenDates || []
+              takenDates: medStatus?.todayIntakes || []
             };
           } catch (err) {
             console.warn(`Error cargando estado del medicamento ${med.id}:`, err);
@@ -63,7 +66,7 @@ export default function Main() {
     } finally {
       setIsLoading(false);
     }
-  }, [token]);
+  }, []);
 
   // Efecto inicial para cargar datos
   useEffect(() => {
@@ -86,9 +89,9 @@ export default function Main() {
       
       // Llamar al endpoint correspondiente
       if (isTaken) {
-        await markSkipped(medicationId, token);
+        await markSkipped(medicationId);
       } else {
-        await markTaken(medicationId, token);
+        await markTaken(medicationId);
       }
       
       // Actualizar estado local
@@ -125,42 +128,36 @@ export default function Main() {
         return newState;
       });
     }
-  }, [medications, token]);
+  }, [medications]);
 
   // Manejar edición de medicamento
   const handleEdit = useCallback((medicationId) => {
-    console.log("Editar medicamento:", medicationId);
-    // TODO: Implementar modal o navegación para editar
-    alert(`Funcionalidad de edición para medicamento ${medicationId} pendiente de implementar`);
-  }, []);
+    navigate(`/edit/${medicationId}`);
+  }, [navigate]);
 
   // Manejar eliminación de medicamento
   const handleDelete = useCallback(async (medicationId) => {
-    if (!window.confirm("¿Estás seguro de que quieres eliminar este medicamento?")) {
-      return;
-    }
-    
-    try {
-      // TODO: Implementar endpoint de eliminación
-      // await deleteMedication(medicationId, token);
-      
-      // Por ahora solo removemos del estado local
-      setMedications(prev => prev.filter(med => med.id.toString() !== medicationId.toString()));
-      console.log("Medicamento eliminado:", medicationId);
-      
-    } catch (err) {
-      console.error("Error eliminando medicamento:", err);
-      setError("Error al eliminar el medicamento");
-      setTimeout(() => setError(null), 5000);
-    }
-  }, [token]);
+  if (!window.confirm("¿Estás seguro de que quieres eliminar este medicamento?")) return;
+
+  try {
+-   // antes quitabas solo del estado
+-   setMedications(prev => prev.filter(m => m.id.toString() !== medicationId.toString()));
+-   console.log("Medicamento eliminado:", medicationId);
+
++   await forceDeleteMedication(medicationId); // borra reminders -> medicamento
++   await loadMedications(); // confirma contra el backend
++   console.log("Medicamento eliminado en backend:", medicationId);
+  } catch (err) {
+    console.error("Error eliminando medicamento:", err);
+    setError(err.message || "Error al eliminar el medicamento");
+    setTimeout(() => setError(null), 5000);
+  }
+}, [loadMedications]);
 
   // Manejar adición de nuevo medicamento
-  const handleAddNew = useCallback(() => {
-    console.log("Agregar nuevo medicamento");
-    // TODO: Implementar modal o navegación para agregar
-    alert("Funcionalidad de agregar medicamento pendiente de implementar");
-  }, []);
+ const handleAddNew = useCallback(() => {
+   navigate("/create"); // ← abre la página Create (con CreateForm dentro)
+ }, [navigate]);
 
   // Manejar actualización manual
   const handleRefresh = useCallback(() => {

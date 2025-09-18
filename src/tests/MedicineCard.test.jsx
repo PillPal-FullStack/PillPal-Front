@@ -1,68 +1,77 @@
-import "@testing-library/jest-dom";
+// src/tests/MedicineCard.test.jsx
+import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import MedicineCard from "../components/MedicineCard";
 
-// helper para formato de fecha de hoy (YYYY-MM-DD)
-function todayStr() {
-  return new Date().toISOString().split("T")[0];
-}
+// util para YYYY-MM-DD de hoy
+const todayStr = () => new Date().toISOString().split("T")[0];
 
-describe("MedicineCard", () => {
-  test("muestra 'Tomado' si la entrada de hoy está marcada como tomada", () => {
+describe("MedicineCard (simple)", () => {
+  it("hoy tomada: muestra 'Tomada' y botón habilitado (Desmarcar tomado)", () => {
     render(
       <MedicineCard
         entry={{ date: todayStr(), taken: true }}
+        medication={{ name: "Med", dosage: "500mg" }}
         isToday={true}
         onToggle={() => {}}
+        isLoading={false}
       />
     );
 
-    expect(screen.getByText(/tomado/i)).toBeInTheDocument();
-    // el botón está habilitado
-    expect(screen.getByRole("button", { name: /desmarcar tomado/i })).toBeEnabled();
+    // Chip "Tomada"
+    expect(screen.getByText(/Tomada/i)).toBeTruthy();
+
+    // Botón con aria-label "Desmarcar tomado" y NO disabled
+    const btn = screen.getByRole("button", { name: /Desmarcar tomado/i });
+    expect(btn.hasAttribute("disabled")).toBe(false);
   });
 
-  test("muestra 'Pendiente' si la entrada de hoy no está tomada", () => {
-    render(
-      <MedicineCard
-        entry={{ date: todayStr(), taken: false }}
-        isToday={true}
-        onToggle={() => {}}
-      />
-    );
-
-    expect(screen.getByText(/pendiente/i)).toBeInTheDocument();
-    // el botón está habilitado
-    expect(screen.getByRole("button", { name: /marcar tomado/i })).toBeEnabled();
-  });
-
-  test("llama a onToggle al hacer click cuando es hoy", () => {
+  it("hoy pendiente: muestra 'Pendiente' y al hacer click llama onToggle(fecha)", () => {
     const onToggle = vi.fn();
+    const today = todayStr();
+
     render(
       <MedicineCard
-        entry={{ date: todayStr(), taken: false }}
+        entry={{ date: today, taken: false }}
+        medication={{ name: "Med", dosage: "500mg" }}
         isToday={true}
         onToggle={onToggle}
+        isLoading={false}
       />
     );
 
-    fireEvent.click(screen.getByRole("button", { name: /marcar tomado/i }));
-    expect(onToggle).toHaveBeenCalledWith(todayStr());
+    // Chip "Pendiente"
+    expect(screen.getByText(/Pendiente/i)).toBeTruthy();
+
+    // Botón con aria-label "Marcar tomado" habilitado
+    const btn = screen.getByRole("button", { name: /Marcar tomado/i });
+    expect(btn.hasAttribute("disabled")).toBe(false);
+
+    fireEvent.click(btn);
+    expect(onToggle).toHaveBeenCalledTimes(1);
+    expect(onToggle).toHaveBeenCalledWith(today);
   });
 
-  test("muestra 'Archivo' para fechas pasadas", () => {
+  it("pasado no tomado: muestra 'Ignorada' y botón deshabilitado", () => {
     render(
       <MedicineCard
-        entry={{ date: "2000-01-01", taken: false }}
+        entry={{ date: "2000-01-01", taken: false }} // pasado
+        medication={{ name: "Med" }}
         isToday={false}
+        onToggle={() => {}}
+        isLoading={false}
       />
     );
-    expect(screen.getByText(/archivo/i)).toBeInTheDocument();
-    // botón deshabilitado
-    expect(screen.getByRole("button")).toBeDisabled();
+
+    // Chip "Ignorada"
+    expect(screen.getByText(/Ignorada/i)).toBeTruthy();
+
+    // Botón (aria-label será "Marcar tomado") pero DESHABILITADO por ser pasado
+    const btn = screen.getByRole("button", { name: /Marcar tomado/i });
+    expect(btn.hasAttribute("disabled")).toBe(true);
   });
 
-  test("muestra 'Faltan Xh Ym' para fechas futuras", () => {
+  it("futuro: muestra 'Faltan ...' y botón deshabilitado", () => {
     const future = new Date();
     future.setDate(future.getDate() + 1);
     const futureStr = future.toISOString().split("T")[0];
@@ -70,11 +79,18 @@ describe("MedicineCard", () => {
     render(
       <MedicineCard
         entry={{ date: futureStr, taken: false }}
+        medication={{ name: "Med" }}
         isToday={false}
+        onToggle={() => {}}
+        isLoading={false}
       />
     );
 
-    expect(screen.getByText(/faltan/i)).toBeInTheDocument();
-    expect(screen.getByRole("button")).toBeDisabled();
+    // Texto "Faltan ..." (no sabemos exacto, validamos prefijo)
+    expect(screen.getByText((t) => /Faltan/i.test(t))).toBeTruthy();
+
+    // Botón deshabilitado
+    const btn = screen.getByRole("button", { name: /Marcar tomado/i });
+    expect(btn.hasAttribute("disabled")).toBe(true);
   });
 });

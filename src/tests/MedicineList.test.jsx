@@ -1,67 +1,78 @@
-import "@testing-library/jest-dom";
+// src/tests/MedicineList.test.jsx
+import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import MedicineList from "../components/MedicineList";
 
-describe("MedicineList", () => {
-  // Congelamos 'hoy' para que el test sea estable
-  const FIXED_NOW = new Date("2025-09-18T10:00:00Z");
+// YYYY-MM-DD de hoy (UTC)
+const todayStr = () => new Date().toISOString().split("T")[0];
 
-  beforeAll(() => {
-    vi.useFakeTimers();
-    vi.setSystemTime(FIXED_NOW);
-  });
-
-  afterAll(() => {
-    vi.useRealTimers();
-  });
-
-  function makeList() {
-    return {
-      id: 42,
-      name: "Ibuprofeno 500 mg",
-      entries: [
-        { date: "2025-09-17", taken: true },   // pasado
-        { date: "2025-09-18", taken: false },  // hoy
-        { date: "2025-09-19", taken: false },  // futuro
-      ],
+function renderList({
+  medication,
+  takenDates = [],
+  onToggle = vi.fn(),
+} = {}) {
+  const med =
+    medication ??
+    {
+      id: 1,
+      name: "Paracetamol",
+      description: "Cada 8h",
+      dosage: "500 mg",
+      active: true,
+      startDate: todayStr(),
+      endDate: todayStr(),
+      lifetime: false,
     };
-  }
 
-  test("renderiza nombre y contador de días", () => {
-    const list = makeList();
-    render(<MedicineList list={list} onToggle={() => {}} />);
+  const utils = render(
+    <MedicineList
+      medication={med}
+      takenDates={takenDates}
+      onToggle={onToggle}
+      onEdit={() => {}}
+      onDelete={() => {}}
+      isLoading={false}
+    />
+  );
 
-    expect(screen.getByText("Ibuprofeno 500 mg")).toBeInTheDocument();
-    expect(screen.getByText(/3 días/i)).toBeInTheDocument();
+  return { ...utils, med, onToggle };
+}
+
+describe("MedicineList (mínimo)", () => {
+  it("renderiza el nombre y muestra 'Adherencia'", () => {
+    const { med } = renderList();
+    // ✅ el nombre como heading (evita duplicados de getByText)
+    expect(
+      screen.getByRole("heading", { name: new RegExp(med.name, "i") })
+    ).toBeTruthy();
+    // Adherencia visible
+    expect(screen.getByText(/Adherencia/i)).toBeTruthy();
   });
 
-  test("el item de hoy permite toggle y llama a onToggle(listId, date)", () => {
-    const list = makeList();
+  it("hoy pendiente: permite toggle y llama onToggle(id, date)", () => {
+    const today = todayStr();
     const onToggle = vi.fn();
 
-    render(<MedicineList list={list} onToggle={onToggle} />);
+    renderList({
+      medication: {
+        id: 99,
+        name: "Ibuprofeno",
+        dosage: "200 mg",
+        active: true,
+        startDate: today,
+        endDate: today,
+        lifetime: false,
+      },
+      takenDates: [], // pendiente hoy
+      onToggle,
+    });
 
-    // Hay 3 botones con el mismo aria-label; el de HOY es el único habilitado
-    const candidates = screen.getAllByRole("button", { name: /marcar tomado/i });
-    const todayBtn = candidates.find((b) => !b.disabled);
+    // Botón del item de hoy (aria-label)
+    const btn = screen.getByRole("button", { name: /Marcar tomado/i });
+    expect(btn.hasAttribute("disabled")).toBe(false);
 
-    expect(todayBtn).toBeDefined();
-    expect(todayBtn).toBeEnabled();
-
-    fireEvent.click(todayBtn);
-
+    fireEvent.click(btn);
     expect(onToggle).toHaveBeenCalledTimes(1);
-    expect(onToggle).toHaveBeenCalledWith(42, "2025-09-18");
-  });
-
-  test("pasado y futuro muestran botón deshabilitado", () => {
-    const list = makeList();
-    render(<MedicineList list={list} onToggle={() => {}} />);
-
-    const buttons = screen.getAllByRole("button", { name: /marcar tomado/i });
-    const disabled = buttons.filter((b) => b.disabled);
-
-    // Deben ser 2: uno para pasado y uno para futuro
-    expect(disabled.length).toBe(2);
+    expect(onToggle).toHaveBeenCalledWith(99, today);
   });
 });

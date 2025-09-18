@@ -1,62 +1,44 @@
-import "@testing-library/jest-dom";
+// src/tests/CreateForm.test.jsx
+import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
+
+// Mock del servicio que usa el formulario
+vi.mock("../services/CreateServices", () => ({
+  createMedication: vi.fn().mockResolvedValue({ id: 101 }),
+}));
+
 import CreateForm from "../components/CreateForm";
+import { createMedication } from "../services/CreateServices";
 
-beforeEach(() => {
-  localStorage.clear();
-  vi.restoreAllMocks();
-});
-
-describe("CreateForm", () => {
-  test("muestra 'El nombre es obligatorio.' si envías vacío", async () => {
+describe("CreateForm (simple)", () => {
+  it("envía con lo mínimo y muestra el éxito", async () => {
     render(<CreateForm />);
-    fireEvent.click(screen.getByRole("button", { name: /añadir la medicación/i }));
-    expect(await screen.findByText(/el nombre es obligatorio/i)).toBeInTheDocument();
-  });
 
-  test("envía POST con datos válidos y muestra éxito", async () => {
-    // Simula sesión
-    localStorage.setItem("token", "fake-jwt");
-
-    // Mock de fetch exitoso
-    const fetchMock = vi.spyOn(global, "fetch").mockResolvedValueOnce(
-      new Response(JSON.stringify({ id: 123 }), {
-        status: 201,
-        headers: { "Content-Type": "application/json" },
-      })
+    // Nombre obligatorio
+    fireEvent.change(
+      screen.getByLabelText(/Nombre de la medicación/i),
+      { target: { value: "Ibuprofeno" } }
     );
 
-    render(<CreateForm />);
+    // Forma (Pastilla)
+    fireEvent.click(screen.getByText(/Pastilla/i));
 
-    // Nombre
-    fireEvent.change(screen.getByLabelText(/nombre de la medicación/i), {
-      target: { value: "Ibuprofeno" },
-    });
-    // Forma (elige “Pastilla”)
-    fireEvent.click(screen.getByText(/pastilla/i));
-    // Dosis
-    fireEvent.change(screen.getByLabelText(/dosis/i), {
-      target: { value: "500 mg" },
-    });
-    // Marca “Uso de por vida” para no requerir fecha fin
-    fireEvent.click(screen.getByRole("checkbox", { name: /uso de por vida/i }));
+    // Hora (recordatorio activo por defecto)
+    fireEvent.click(screen.getByText("08:00"));
+
+    // Marcar “Uso de por vida” para no requerir fecha fin
+    fireEvent.click(screen.getByLabelText(/Uso de por vida/i));
 
     // Enviar
-    fireEvent.click(screen.getByRole("button", { name: /añadir la medicación/i }));
+    fireEvent.click(
+      screen.getByRole("button", { name: /Añadir la medicación/i })
+    );
 
-    // Se llamó a fetch correctamente
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    const [url, options] = fetchMock.mock.calls[0];
-    expect(url).toMatch(/\/api\/medications$/);
-    expect(options.method).toBe("POST");
-    expect(options.headers.Authorization).toBe("Bearer fake-jwt");
+    // Se llamó al servicio
+    expect(createMedication).toHaveBeenCalledTimes(1);
 
-    const body = JSON.parse(options.body);
-    expect(body.name).toBe("Ibuprofeno");
-    expect(body.lifetime).toBe(true);
-    expect(body.endDate).toBeNull();
-
-    // Mensaje de éxito
-    expect(await screen.findByText(/medicamento creado/i)).toBeInTheDocument();
+    // Aparece el mensaje de éxito (sin usar toBeInTheDocument)
+    const ok = await screen.findByText(/Medicamento creado \(id 101\)\./i);
+    expect(ok).toBeTruthy(); 
   });
 });

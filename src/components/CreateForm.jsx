@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Search, Pill, Square, Syringe, Droplets, Beaker, MoreHorizontal, Wind } from "lucide-react";
-
-const API_BASE = import.meta?.env?.VITE_API_BASE_URL || `http://localhost:8080`;
+import { createMedication } from "../services/CreateServices";
 
 const CreateForm = () => {
   const [medicationName, setMedicationName] = useState("");
@@ -14,25 +13,37 @@ const CreateForm = () => {
   const [dosageText, setDosageText] = useState("");
   const [comments, setComments] = useState("");
   const [imageFile, setImageFile] = useState(null);
+
+  // Recordatorios (nuevos campos del back)
+  const [createReminder, setCreateReminder] = useState(true);
+  const [reminderEnabled, setReminderEnabled] = useState(true);
+  const [reminderFrequency, setReminderFrequency] = useState("DAILY"); // DAILY|WEEKLY|MONTHLY
+
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [okMsg, setOkMsg] = useState("");
 
   const dosageForms = [
     { id: "capsule", name: "Cápsula", icon: Pill },
-    { id: "pill", name: "Pastilla", icon: Square },
+    { id: "pill",    name: "Pastilla", icon: Square },
     { id: "injection", name: "Inyección", icon: Syringe },
-    { id: "spray", name: "Spray", icon: Wind },
-    { id: "drop", name: "Gota", icon: Droplets },
-    { id: "syrup", name: "Sirope", icon: Beaker },
-    { id: "other", name: "Otro", icon: MoreHorizontal },
+    { id: "spray",   name: "Spray", icon: Wind },
+    { id: "drop",    name: "Gota", icon: Droplets },
+    { id: "syrup",   name: "Sirope", icon: Beaker },
+    { id: "other",   name: "Otro", icon: MoreHorizontal },
   ];
 
   const timeOptions = [
     { value: "08:00", label: "08:00" },
     { value: "12:00", label: "12:00" },
     { value: "20:00", label: "20:00" },
-    { value: "24:00", label: "24:00" }, // si luego quieres validarlo, cámbialo por "00:00"
+    { value: "00:00", label: "00:00" }, 
+  ];
+
+  const freqOptions = [
+    { value: "DAILY", label: "Diario" },
+    { value: "WEEKLY", label: "Semanal" },
+    { value: "MONTHLY", label: "Mensual" },
   ];
 
   function buildDosage() {
@@ -47,60 +58,36 @@ const CreateForm = () => {
     setErrorMsg("");
     setOkMsg("");
 
+    // Validaciones
     if (!medicationName.trim()) return setErrorMsg("El nombre es obligatorio.");
     if (!selectedForm) return setErrorMsg("Selecciona la forma de la dosis.");
     if (!startDate) return setErrorMsg("La fecha de inicio es obligatoria.");
     if (!lifetime && !endDate) return setErrorMsg("Indica fecha de fin o marca 'uso de por vida'.");
+    if (createReminder && !selectedTime) return setErrorMsg("Selecciona una hora para el recordatorio (HH:mm).");
 
-    const token = localStorage.getItem("token");
-    if (!token) return setErrorMsg("No hay sesión. Inicia sesión para crear.");
-
-    const bodyCommon = {
+    const payload = {
       name: medicationName.trim(),
-      description: comments?.trim() || null,
-      imgUrl: null,
+      description: comments?.trim() || "",
+      imgUrl: "", // si más adelante usas URL externa, la pones aquí
       dosage: buildDosage() || "Sin especificar",
       active: isActive,
-      startDate,
-      endDate: lifetime ? null : endDate,
+      startDate,                                  // "YYYY-MM-DD"
+      endDate: lifetime ? null : (endDate || null),
       lifetime,
+
+      // Recordatorios
+      createReminder,
+      reminderTime: selectedTime || "",           // "HH:mm", requerido si createReminder
+      reminderFrequency,                          // "DAILY" | "WEEKLY" | "MONTHLY"
+      reminderEnabled: createReminder ? reminderEnabled : false,
     };
 
     try {
       setLoading(true);
+      const data = await createMedication(payload, imageFile);
+      setOkMsg(`Medicamento creado (id ${data?.id ?? "?"}).`);
 
-      let res;
-      if (imageFile) {
-        const fd = new FormData();
-        Object.entries(bodyCommon).forEach(([k, v]) => {
-          fd.append(k, v === null ? "" : String(v));
-        });
-        fd.append("image", imageFile);
-
-        res = await fetch(`${API_BASE}/api/medications/with-image`, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-          body: fd,
-        });
-      } else {
-        res = await fetch(`${API_BASE}/api/medications`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(bodyCommon),
-        });
-      }
-
-      if (!res.ok) {
-        const err = await safeJson(res);
-        throw new Error(err?.message || `Error ${res.status}`);
-      }
-
-      const data = await res.json();
-      setOkMsg(`Medicamento creado (id ${data.id}).`);
-      // limpia
+      // Reset
       setMedicationName("");
       setSelectedForm("");
       setIsActive(true);
@@ -111,15 +98,14 @@ const CreateForm = () => {
       setDosageText("");
       setComments("");
       setImageFile(null);
+      setCreateReminder(true);
+      setReminderEnabled(true);
+      setReminderFrequency("DAILY");
     } catch (err) {
-      setErrorMsg(err.message);
+      setErrorMsg(err.message || "Error creando el medicamento");
     } finally {
       setLoading(false);
     }
-  }
-
-  async function safeJson(res) {
-    try { return await res.json(); } catch { return null; }
   }
 
   return (
@@ -234,7 +220,7 @@ const CreateForm = () => {
               </button>
             </div>
 
-            {/* Hora del día (guardada dentro de "dosage") */}
+            {/* Hora del día (se usa en dosage y como reminderTime) */}
             <div>
               <span className="block text-sm font-medium text-gray-700 mb-3">Hora del día</span>
               <div className="flex flex-wrap gap-3">
@@ -263,9 +249,6 @@ const CreateForm = () => {
                   );
                 })}
               </div>
-              <p className="mt-1 text-xs text-gray-500">
-                (El backend no tiene campo de hora; la guardamos dentro de <b>dosage</b>.)
-              </p>
             </div>
 
             {/* Fechas */}
@@ -296,7 +279,7 @@ const CreateForm = () => {
                       onChange={(e) => setLifetime(e.target.checked)}
                       className="rounded"
                     />
-                    Uso de por vida (sin fin)
+                    Uso de por vida
                   </label>
                 </div>
                 <input
@@ -307,6 +290,56 @@ const CreateForm = () => {
                   disabled={lifetime}
                   className="w-full px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none disabled:bg-gray-100"
                 />
+              </div>
+            </div>
+
+            {/* Recordatorios */}
+            <div className="space-y-3 border rounded-lg p-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-700">Crear recordatorio</span>
+                <button
+                  type="button"
+                  onClick={() => setCreateReminder((v) => !v)}
+                  aria-pressed={createReminder}
+                  className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors
+                              ${createReminder ? "bg-blue-600" : "bg-gray-300"}`}
+                >
+                  <span
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform
+                                ${createReminder ? "translate-x-7" : "translate-x-1.5"}`}
+                  />
+                </button>
+              </div>
+
+              <div className={`grid grid-cols-1 sm:grid-cols-2 gap-3 ${!createReminder ? "opacity-60 pointer-events-none" : ""}`}>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Frecuencia</label>
+                  <select
+                    value={reminderFrequency}
+                    onChange={(e) => setReminderFrequency(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  >
+                    {freqOptions.map(f => (
+                      <option key={f.value} value={f.value}>{f.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-700">Recordatorio activo</span>
+                  <button
+                    type="button"
+                    onClick={() => setReminderEnabled((v) => !v)}
+                    aria-pressed={reminderEnabled}
+                    className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors
+                                ${reminderEnabled ? "bg-blue-600" : "bg-gray-300"}`}
+                  >
+                    <span
+                      className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform
+                                  ${reminderEnabled ? "translate-x-7" : "translate-x-1.5"}`}
+                    />
+                  </button>
+                </div>
               </div>
             </div>
 

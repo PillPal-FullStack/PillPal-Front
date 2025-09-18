@@ -9,7 +9,7 @@ export function useAuth() {
     // Intentar cargar token del localStorage o sessionStorage
     // Por ahora usamos el token hardcodeado para desarrollo
     const savedToken = localStorage.getItem('auth_token') || 
-      "eyJhbGciOiJIUzI1NiJ9.eyJpZCI6MSwicm9sZSI6IltST0xFX1VTRVJdIiwic3ViIjoidGVzdHVzZXIiLCJpYXQiOjE3NTgxOTg1NDUsImV4cCI6MTc1ODIwMDM0NX0.sh7Q9jlZ3kxbiGq8qenoIg018ZfrQbyeM0qXHLizdUA";
+      "eyJhbGciOiJIUzI1NiJ9.eyJpZCI6MSwicm9sZSI6IltST0xFX1VTRVJdIiwic3ViIjoidGVzdHVzZXIiLCJpYXQiOjE3NTgyMDU0MzksImV4cCI6MTc1ODIwNzIzOX0.K1KYL17_UqkvhCYYPLm6FLQ1VS_Apvah2wY3DCO4Mpc";
     
     if (savedToken) {
       setToken(savedToken);
