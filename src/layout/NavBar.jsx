@@ -13,7 +13,7 @@ export default function Navbar() {
     const toggleMenu = () => setIsOpen(!isOpen);
 
     return (
-        <nav className={styles.navbar}>
+        <nav className={styles.navbar} >
 
             {/* Botón hamburguesa */}
             <button
@@ -40,7 +40,7 @@ export default function Navbar() {
                         onClick={() => setIsOpen(false)}
                         className={({ isActive }) => isActive ? styles.activeLink : ""}
                     >
-                       <CiHome /> Inicio
+                        <CiHome /> Inicio
                     </NavLink>
                 </li>
                 <li>
