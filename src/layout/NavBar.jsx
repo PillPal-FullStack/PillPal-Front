@@ -54,15 +54,6 @@ export default function Navbar() {
                 </li>
                 <li>
                     <NavLink
-                        to="/history"
-                        onClick={() => setIsOpen(false)}
-                        className={({ isActive }) => isActive ? styles.activeLink : ""}
-                    >
-                        <CiCalendarDate /> Mi historial
-                    </NavLink>
-                </li>
-                <li>
-                    <NavLink
                         to="/profile"
                         onClick={() => setIsOpen(false)}
                         className={({ isActive }) => isActive ? styles.activeLink : ""}
