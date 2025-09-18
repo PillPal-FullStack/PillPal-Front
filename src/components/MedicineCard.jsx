@@ -1,38 +1,24 @@
 import React, { useMemo } from "react";
-import { Check } from "lucide-react";
+import { Check, Clock, Pill } from "lucide-react";
 
-/**
- * MedicineCard
- * - entry: { date: "YYYY-MM-DD", taken: boolean }
- * - isToday: boolean => sólo si true el check es interactivo
- * - onToggle(date) => callback para alternar taken (sólo si isToday)
- */
-export default function MedicineCard({ entry, isToday, onToggle }) {
-  // parseo seguro de la fecha (inicio del día en zona local)
+export default function MedicineCard({ entry, medication, isToday, onToggle, isLoading = false }) {
   const startOfEntryDay = useMemo(
     () => new Date(`${entry.date}T00:00:00`),
     [entry.date]
   );
   const now = useMemo(() => new Date(), []);
 
-  // status lógico:
-  // - si es hoy => "taken" | "pending"
-  // - si está en el futuro => "upcoming"
-  // - si está en el pasado => "taken" | "ignored"
   const status = useMemo(() => {
     const todayStr = new Date().toISOString().split("T")[0];
 
     if (entry.date === todayStr) {
-      return entry.taken ? "taken" : "pending"; // hoy todavía se puede marcar
+      return entry.taken ? "taken" : "pending";
     }
+    if (startOfEntryDay > now) return "upcoming";
 
-    if (startOfEntryDay > now) return "upcoming"; // días futuros
-
-    // días pasados
-    return entry.taken ? "taken" : "ignored"; // si no se tomó, se marca como ignorada
+    return entry.taken ? "taken" : "ignored";
   }, [entry.date, entry.taken, startOfEntryDay, now]);
 
-  // calcula el tiempo restante hasta el inicio del día (para "upcoming")
   const timeLeftText = useMemo(() => {
     const ms = startOfEntryDay - now;
     if (ms <= 0) return "";
@@ -46,26 +32,40 @@ export default function MedicineCard({ entry, isToday, onToggle }) {
     return `Faltan ${hours}h ${minutes}m`;
   }, [startOfEntryDay, now]);
 
-  // handler click en el check (solo interactúa si isToday y no es 'upcoming')
   const handleToggle = () => {
-    if (!isToday) return;
-    if (status === "upcoming" || status === "past" || status === "ignored") return;
+    if (!isToday || isLoading) return;
+    if (status === "upcoming" || status === "ignored") return;
     onToggle && onToggle(entry.date);
   };
 
-  // estilos de la pill de estado
-  const statusPill = {
-    taken: "bg-green-600 text-white",
-    pending: "bg-red-500 text-white",
-    ignored: "bg-red-500 text-white", // igual que pending pero ya no se puede marcar
-    upcoming: "bg-white text-gray-800 border border-gray-200",
-    past: "bg-gray-200 text-gray-700",
-  }[status];
+  const statusConfig = {
+    taken: {
+      pill: "bg-green-600 text-white",
+      text: "Tomada",
+      icon: <Check className="w-4 h-4" />
+    },
+    pending: {
+      pill: "bg-red-500 text-white",
+      text: "Pendiente",
+      icon: <Clock className="w-4 h-4" />
+    },
+    ignored: {
+      pill: "bg-red-500 text-white",
+      text: "Ignorada",
+      icon: null
+    },
+    upcoming: {
+      pill: "bg-white text-gray-800 border border-gray-200",
+      text: timeLeftText,
+      icon: <Clock className="w-4 h-4" />
+    }
+  };
 
-  // formato bonito de la fecha: ej "Mié, 17 Sep"
+  const currentStatus = statusConfig[status];
+
   const dateLabel = useMemo(() => {
     const d = new Date(`${entry.date}T00:00:00`);
-    return d.toLocaleDateString(undefined, {
+    return d.toLocaleDateString('es-ES', {
       weekday: "short",
       day: "2-digit",
       month: "short",
@@ -73,80 +73,70 @@ export default function MedicineCard({ entry, isToday, onToggle }) {
   }, [entry.date]);
 
   return (
-    <div
-      // fondo aguamarina, esquinas redondeadas, separacion entre días
-      className="bg-teal-100 rounded-lg p-4 mb-4 flex items-center gap-4 shadow-sm"
-    >
-      {/* Fecha a la izquierda (fija ancho para que no pegue al borde) */}
+    <div className={`bg-teal-100 rounded-lg p-4 mb-4 flex items-center gap-4 shadow-sm transition-all duration-200 ${
+      isLoading ? 'opacity-60 pointer-events-none' : 'hover:shadow-md'
+    }`}>
+      {/* Fecha */}
       <div className="w-32 flex-shrink-0 flex flex-col">
-        <span className="text-sm font-semibold text-teal-800">{dateLabel}</span>
+        <span className="text-sm font-semibold text-teal-800 capitalize">{dateLabel}</span>
         <span className="text-xs text-teal-700">{entry.date}</span>
       </div>
 
-      {/* Contenido central (puede ampliarse: nombre dosis etc.) */}
+      {/* Información del medicamento */}
       <div className="flex-1 flex items-center justify-between">
-        <div>
-          <div className="text-sm font-medium text-teal-900">Medicamento</div>
-          <div className="text-xs text-teal-700">1 comprimido · mañana</div>
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-teal-200 rounded-lg">
+            <Pill className="w-5 h-5 text-teal-800" />
+          </div>
+          <div>
+            <div className="text-sm font-medium text-teal-900">
+              {medication?.name || 'Medicamento'}
+            </div>
+            <div className="text-xs text-teal-700">
+              {medication?.dosage || 'Dosis no especificada'}
+            </div>
+            {medication?.description && (
+              <div className="text-xs text-teal-600 mt-1">
+                {medication.description}
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Pill de estado o contador (espaciado interno y border si es white) */}
-        <div className="ml-4">
-          {status === "taken" && (
-            <span
-              className={`px-3 py-1 rounded-full font-medium ${statusPill}`}
-            >
-              Tomada
-            </span>
-          )}
-          {status === "pending" && (
-            <span
-              className={`px-3 py-1 rounded-full font-medium ${statusPill}`}
-            >
-              Pendiente
-            </span>
-          )}
-          {status === "ignored" && (
-            <span
-              className={`px-3 py-1 rounded-full font-medium ${statusPill}`}
-            >
-              Ignorada
-            </span>
-          )}
-          {status === "upcoming" && (
-            <span
-              className={`px-3 py-1 rounded-full font-medium text-[13px] ${statusPill} whitespace-nowrap`}
-              title={timeLeftText}
-            >
-              {timeLeftText}
-            </span>
-          )}
-          {status === "past" && (
-            <span
-              className={`px-3 py-1 rounded-full font-medium ${statusPill}`}
-            >
-              Archivado
-            </span>
-          )}
+        {/* Estado */}
+        <div className="ml-4 flex items-center gap-2">
+          <span 
+            className={`px-3 py-1 rounded-full font-medium text-sm flex items-center gap-1 ${currentStatus.pill}`}
+            title={status === "upcoming" ? timeLeftText : currentStatus.text}
+          >
+            {currentStatus.icon}
+            {currentStatus.text}
+          </span>
         </div>
       </div>
 
-      {/* Checkmark a la derecha */}
+      {/* Botón de acción */}
       <button
         aria-label={status === "taken" ? "Desmarcar tomado" : "Marcar tomado"}
         onClick={handleToggle}
-        disabled={!isToday || status === "upcoming" || status === "past" || status === "ignored"}
-        className={`ml-4 p-2 rounded-full border transition ${
-          !isToday || status === "upcoming" || status === "past" || status === "ignored"
-            ? "opacity-40 cursor-not-allowed border-gray-200"
-            : "hover:bg-green-50 border-gray-300"
+        disabled={!isToday || status === "upcoming" || status === "ignored" || isLoading}
+        className={`ml-4 p-3 rounded-full border-2 transition-all duration-200 ${
+          !isToday || status === "upcoming" || status === "ignored" || isLoading
+            ? "opacity-40 cursor-not-allowed border-gray-200 bg-gray-50"
+            : status === "taken" 
+              ? "border-green-600 bg-green-50 hover:bg-green-100 text-green-600"
+              : "border-gray-300 bg-white hover:border-green-500 hover:bg-green-50 text-gray-500 hover:text-green-600"
         }`}
       >
-        <Check
-          className={`w-5 h-5 ${
-            status === "taken" ? "text-green-600" : "text-gray-500"
-          }`}
-        />
+        {isLoading ? (
+          <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+        ) : (
+          <Check
+            className={`w-5 h-5 transition-colors ${
+              status === "taken" ? "text-green-600" : "text-current"
+            }`}
+          />
+        )}
       </button>
     </div>
   );
