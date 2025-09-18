@@ -1,33 +1,77 @@
-# PillPal - Frontend
-PillPal es una aplicación web que ayuda a los usuarios a recordar sus medicamentos y gestionar su historial de medicación. Este proyecto fue desarrollado como parte del hackathon de Factoría F5.
-Características:
-- Recordatorio de medicamentos.
-- Gestión del historial de medicación.
-- Modo oscuro y claro configurable.
-- Navbar y menú responsive.
-- Integración con backend (Java) para almacenamiento de datos.
+# PillPal
 
-Tecnologías utilizadas:
-- React
-- React Router
-- CSS Modules
-- React Icons
-- JavaScript (ES6+)
+![React](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-C7F?logo=vite&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-4479A1?logo=mysql&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/SpringBoot-6DB33F?logo=springboot&logoColor=white)
 
-Estructura del proyecto:
+**PillPal** es una aplicación web para **trackear la toma de medicamentos** de varias personas. Permite crear cuentas, registrar medicamentos, programar recordatorios y controlar la ingesta diaria según las indicaciones.
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/b770bbff-1f24-4ec1-9222-d026918c838b" width="300" height="300" alt="pillpal" />
+</div>
+
+---
+
+## 🔹 Características principales
+
+- Registro de medicamentos con persistencia de datos.
+- Listado de medicamentos activos y opción de marcarlos como "tomado".
+- Visualización del estado de los medicamentos según la hora del día.
+- Creación y gestión de cuentas de usuario.
+- Separación de frontend y backend con consumo de API REST.
+- Interfaz moderna y responsiva.
+
+---
+
+## 🛠 Tecnologías utilizadas
+
+- **Frontend:** React + Vite  
+- **Backend:** Spring Boot (repositorio separado)  
+- **Base de datos:** MySQL  
+- **Consumo de API REST:** Axios / Fetch  
+- **Gestión de estado:** React Context / Hooks
+
+---
+
+## ⚡ Instalación y despliegue (Frontend)
+
+1. **Clonar el repositorio:**
+
+```bash
+git clone https://github.com/tu-usuario/pillpal-frontend.git
+cd pillpal-frontend
 ```
-pillpal-frontend/
-│
-├─ public/             # Archivos públicos (imágenes, favicon)
-├─ src/
-│  ├─ components/      # Componentes reutilizables (Navbar, Footer, DarkModeToggle, etc.)
-│  ├─ pages/           # Páginas de la app (Home, Create, History, Profile)
-│  ├─ App.jsx          # Componente principal con rutas
-│  ├─ index.jsx        # Entrada de React
-│  └─ styles/          # Estilos globales y variables CSS
-├─ package.json
-└─ README.md
+2. **Instalar dependencias:**
+```bash
+npm install
 ```
+3. **Configurar variables de entorno:**
+```bash
+VITE_API_URL=http://localhost:8080/api
+```
+4. **Iniciar la aplicación en modo desarrollo:**
+```bash
+npm run dev
+```
+5. **Construir para producción:**
+```bash
+npm run build
+```
+## 🔗 Integración con Backend
 
-Licencia
-Este proyecto es parte de un hackathon educativo y no tiene licencia comercial asignada.
+El backend se encuentra en un repositorio separado y ofrece API REST para:
+
+- Crear y gestionar usuarios.
+- Registrar medicamentos y sus dosis.
+- Actualizar el estado de los medicamentos.
+- Consultar el historial de tomas.
+
+## 👥 Integrantes del departamento:
+- Irina Tiron | FemMad
+- Angelina Pereira | FemMad
+- Mio Ogura | FemBcn
+- Miguel Ballesteros | DigiAst
+
+
+
