@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import styles from "./Profile.module.css";
+import History from "./History";
+import { CiMedicalClipboard } from "react-icons/ci";
 
 export default function Profile() {
   const [user, setUser] = useState(null);
@@ -44,55 +46,34 @@ export default function Profile() {
   }
 
   return (
-    <div className="flex justify-center">
-      <div className={styles.mainSection}>
-        <h1 className="text-2xl font-bold text-teal-900 mb-6">Mi Perfil</h1>
+    <>
+      <div className="flex justify-center">
+        <div className={styles.mainSection}>
+          <h1 className="text-2xl font-bold text-teal-900 mb-6 text-center">Mi información</h1>
 
-        <div className="mb-8">
-          <p className="text-xl font-semibold mb-2">Nombre de usuario</p>
-          <p className="text-lg text-gray-700 mb-4">{user.username}</p>
+          {/* Información del usuario */}
+          <div className="max-w-md mx-auto p-4 mb-8 bg-white rounded-lg shadow-sm">
+            <p className="text-xl font-semibold mb-2">Nombre de usuario</p>
+            <p className="text-lg text-gray-700 mb-4">{user.username}</p>
 
-          <p className="text-xl font-semibold mb-2">Correo electrónico</p>
-          <p className="text-lg text-gray-700 mb-4">{user.email}</p>
+            <p className="text-xl font-semibold mb-2">Correo electrónico</p>
+            <p className="text-lg text-gray-700 mb-4">{user.email}</p>
 
-          <p className="text-xl font-semibold mb-2">Rol</p>
-          <p className="text-lg text-gray-700">{user.role}</p>
-        </div>
-
-        <div>
-          <h2 className="text-2xl font-bold text-teal-900 mb-6">Medicación registrada</h2>
-          {user.medications.length === 0 ? (
-            <p className="text-gray-500">No tienes medicaciones registradas.</p>
-          ) : (
-            <ul className="divide-y divide-gray-200">
-              {user.medications.map((med) => (
-                <li
-                  key={med.id} className={styles.medicationItem}
-                >
-                  <div className="flex justify-between items-center">
-                    <span className="text-lg font-black">{med.name}</span>
-                    <span className={`px-2 py-1 rounded-full text-sm font-semibold ${med.taken ? "bg-green-200 text-green-800" : "bg-red-200 text-red-800"
-                      }`}>
-                      {med.taken ? "Tomado" : "Pendiente"}
-                    </span>
-                  </div>
-
-                  <p className="text-gray-700"><span className="font-semibold">Dosificación:</span> {med.dosage}</p>
-                  {med.description && (
-                    <p className="text-gray-700"><span className="font-semibold">Descripción:</span> {med.description}</p>
-                  )}
-                  <p className="text-gray-700"><span className="font-semibold">Activo:</span> {med.active ? "Sí" : "No"}</p>
-                  <p className="text-gray-700"><span className="font-semibold">De por vida:</span> {med.lifetime ? "Sí" : "No"}</p>
-                  <p className="text-gray-700">
-                    <span className="font-semibold">Fecha inicio:</span> {med.startDate}
-                    {med.endDate && <>, <span className="font-semibold">Fecha fin:</span> {med.endDate}</>}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          )}
+            <p className="text-xl font-semibold mb-2">Rol</p>
+            <p className="text-lg text-gray-700">{user.role}</p>
+          </div>
+          {/* Medicación */}
+          <div>
+            <h2 className="text-2xl font-bold text-teal-900 mb-6 text-center flex items-center justify-center gap-2">
+              <CiMedicalClipboard /> Mi historial de medicación
+            </h2>
+          </div><History />
         </div>
       </div>
-    </div>
+
+      {/* Historial de medicación */}
+
+    </>
   );
+
 }
