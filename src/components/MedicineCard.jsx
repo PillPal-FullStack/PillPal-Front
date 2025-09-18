@@ -1,6 +1,5 @@
 import React, { useMemo } from "react";
 import { Check } from "lucide-react";
-import "./MedicineCard.css";
 
 /**
  * MedicineCard
