@@ -13,7 +13,7 @@ export default function Navbar() {
     const toggleMenu = () => setIsOpen(!isOpen);
 
     return (
-        <nav className={styles.navbar}>
+        <nav className={styles.navbar} >
 
             {/* Botón hamburguesa */}
             <button
@@ -40,7 +40,7 @@ export default function Navbar() {
                         onClick={() => setIsOpen(false)}
                         className={({ isActive }) => isActive ? styles.activeLink : ""}
                     >
-                       <CiHome /> Inicio
+                        <CiHome /> Inicio
                     </NavLink>
                 </li>
                 <li>
@@ -50,15 +50,6 @@ export default function Navbar() {
                         className={({ isActive }) => isActive ? styles.activeLink : ""}
                     >
                         <CiPill /> Añadir medicación
-                    </NavLink>
-                </li>
-                <li>
-                    <NavLink
-                        to="/history"
-                        onClick={() => setIsOpen(false)}
-                        className={({ isActive }) => isActive ? styles.activeLink : ""}
-                    >
-                        <CiCalendarDate /> Mi historial
                     </NavLink>
                 </li>
                 <li>

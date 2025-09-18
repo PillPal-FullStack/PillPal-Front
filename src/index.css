@@ -5,7 +5,7 @@
 *::before,
 *::after {
   box-sizing: border-box;
-  /* NO border:0 aquí */
+ 
 }
 
 html,
@@ -29,7 +29,7 @@ ul {
   --tealDark: #1D837F;
   --turquoise: #3EAEB1;
   --backgroundLight: #D7EAEE;
-  font-family: Helvetica, Arial, sans-serif;
+  font-family: Karla, sans-serif;
   line-height: 1.5;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -37,9 +37,6 @@ ul {
   -moz-osx-font-smoothing: grayscale;
 }
 
-body {
-  font-family: Helvetica, Arial, sans-serif;
-}
 
 main {
   padding-top: 10px !important;
@@ -47,13 +44,13 @@ main {
   background-repeat: no-repeat;
   background-attachment: fixed;
   background-position: center;
-  background-size: 100%;
+  background-size: cover; 
+  min-height: 100vh;  
 }
 
 @media (max-width: 992px) {
   main {
   background-image: url('../public/background/v870-tang-37.jpg');
-  background-size: 100vh;
   }
 }
 

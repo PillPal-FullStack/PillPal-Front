@@ -1,16 +1,5 @@
 .mainSection {
     width: 100%;
-    max-width: 48rem;
     padding: 1.5rem;
     margin-bottom: 80px;
-}
-
-.medicationItem {
-    margin-bottom: 1rem;
-    padding: 1rem;
-    background-color: #ffffff;
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
