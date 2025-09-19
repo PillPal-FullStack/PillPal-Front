@@ -1,67 +1,3 @@
-// const BASE_URL = "/api";
-
-// // Obtener todas las medicaciones
-// export async function getMedications(token) {
-//   const res = await fetch(`${BASE_URL}/medications`, {
-//     headers: { 
-//       Authorization: `Bearer ${token}`,
-//       'Content-Type': 'application/json'
-//     },
-//   });
-//   if (!res.ok) throw new Error(`Error cargando medicaciones: ${res.status}`);
-//   return res.json();
-// }
-
-// // Obtener el estado de las medicaciones
-// export async function getMedicationsStatus(token) {
-//   const res = await fetch(`${BASE_URL}/medications/status`, {
-//     headers: { 
-//       Authorization: `Bearer ${token}`,
-//       'Content-Type': 'application/json'
-//     },
-//   });
-//   if (!res.ok) throw new Error(`Error cargando el estado de medicaciones: ${res.status}`);
-//   return res.json();
-// }
-
-// // Marcar medicación como tomada
-// export async function markTaken(medicationId, token) {
-//   const res = await fetch(`${BASE_URL}/intakes/${medicationId}/taken`, {
-//     method: "POST",
-//     headers: { 
-//       Authorization: `Bearer ${token}`,
-//       'Content-Type': 'application/json'
-//     },
-//   });
-//   if (!res.ok) throw new Error(`Error marcando como tomada: ${res.status}`);
-//   return res.json();
-// }
-
-// // Marcar medicación como ignorada
-// export async function markSkipped(medicationId, token) {
-//   const res = await fetch(`${BASE_URL}/intakes/${medicationId}/skipped`, {
-//     method: "POST",
-//     headers: { 
-//       Authorization: `Bearer ${token}`,
-//       'Content-Type': 'application/json'
-//     },
-//   });
-//   if (!res.ok) throw new Error(`Error marcando como ignorada: ${res.status}`);
-//   return res.json();
-// }
-
-// // Obtener historial de tomas para una medicación específica
-// export async function getMedicationIntakes(medicationId, token) {
-//   const res = await fetch(`${BASE_URL}/intakes/${medicationId}`, {
-//     headers: { 
-//       Authorization: `Bearer ${token}`,
-//       'Content-Type': 'application/json'
-//     },
-//   });
-//   if (!res.ok) throw new Error(`Error cargando historial de tomas: ${res.status}`);
-//   return res.json();
-// }
-// src/services/CardService.js
 const BASE_URL = "/api";
 
 async function safeJson(res) {
@@ -87,10 +23,6 @@ export async function getMedications() {
   return request(`/medications`, { method: "GET" });
 }
 
-export async function getMedicationsStatus() {
-  return request(`/medications/status`, { method: "GET" });
-}
-
 export async function deleteMedication(medicationId) {
   return request(`/medications/${medicationId}`, { method: "DELETE" });
 }
@@ -104,36 +36,42 @@ export async function deleteReminder(reminderId) {
   return request(`/reminders/${reminderId}`, { method: "DELETE" });
 }
 
-/**
- * Borra primero los recordatorios asociados y luego la medicación.
- * Evita errores de FK si el back no hace cascade.
- */
 export async function forceDeleteMedication(medicationId) {
   let reminders = [];
   try {
     reminders = await getRemindersByMedicationId(medicationId);
-  } catch (_) {
-    // si falla, seguimos intentando borrar la medicación igualmente
-  }
-
+  } catch (_) {}
   if (Array.isArray(reminders)) {
     for (const r of reminders) {
-      try { await deleteReminder(r.id); } catch (_) { /* continua */ }
+      try { await deleteReminder(r.id); } catch (_) {}
     }
   }
-
   return deleteMedication(medicationId);
 }
 
 // --- Intakes ---
-export async function markTaken(medicationId) {
-  return request(`/intakes/${medicationId}/taken`, { method: "POST" });
+export async function markTaken(medicationId, date = null) {
+  const body = date ? { date } : {};
+  return request(`/intakes/${medicationId}/taken`, { 
+    method: "POST",
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
 }
 
-export async function markSkipped(medicationId) {
-  return request(`/intakes/${medicationId}/skipped`, { method: "POST" });
+export async function markSkipped(medicationId, date = null) {
+  const body = date ? { date } : {};
+  return request(`/intakes/${medicationId}/skipped`, { 
+    method: "POST",
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
 }
 
 export async function getMedicationIntakes(medicationId) {
-  return request(`/intakes/${medicationId}`, { method: "GET" });
+  const intakes = await request(`/intakes/medication/${medicationId}`, { method: "GET" });
+  if (!intakes) return [];
+
+  // Ordenar por fecha ascendente (más antiguo arriba)
+  return [...intakes].sort((a, b) => new Date(a.date) - new Date(b.date));
 }

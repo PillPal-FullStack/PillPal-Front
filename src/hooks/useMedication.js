@@ -1,60 +1,101 @@
 import { useState, useCallback, useEffect } from 'react';
 import { 
   getMedications, 
-  getMedicationsStatus, 
+  getMedicationIntakes,
   markTaken, 
   markSkipped 
 } from '../services/CardService';
 
-export function useMedications(token) {
+export function useMedications() {
   const [medications, setMedications] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [actionLoading, setActionLoading] = useState({});
 
+  // Función para convertir los intakes del backend a nuestro formato
+  const processIntakes = (intakes) => {
+    // Agrupar intakes por fecha
+    const intakesByDate = {};
+    
+    intakes.forEach(intake => {
+      const date = new Date(intake.dateTime).toISOString().split('T')[0];
+      if (!intakesByDate[date]) {
+        intakesByDate[date] = [];
+      }
+      intakesByDate[date].push(intake);
+    });
+    
+    // Crear un resumen por fecha
+    return Object.keys(intakesByDate).map(date => {
+      const dayIntakes = intakesByDate[date];
+      const takenCount = dayIntakes.filter(intake => intake.status === 'TAKEN').length;
+      const totalCount = dayIntakes.length;
+      const hasSkipped = dayIntakes.some(intake => intake.status === 'SKIPPED');
+      const hasPending = dayIntakes.some(intake => intake.status === 'PENDING');
+      
+      // Determinar el estado general del día
+      let status = 'PENDING';
+      if (takenCount === totalCount) {
+        status = 'TAKEN'; // Todas las dosis tomadas
+      } else if (takenCount > 0) {
+        status = 'PARTIAL'; // Algunas dosis tomadas
+      } else if (hasSkipped) {
+        status = 'SKIPPED'; // Todas saltadas o alguna saltada
+      }
+      
+      return {
+        date,
+        status,
+        intakes: dayIntakes, // Mantener todos los intakes del día
+        taken: status === 'TAKEN' || status === 'PARTIAL',
+        totalIntakes: totalCount,
+        takenIntakes: takenCount
+      };
+    });
+  };
+
   // Cargar medicamentos desde la API
   const loadMedications = useCallback(async () => {
-    if (!token) return;
-    
     setIsLoading(true);
     setError(null);
     
     try {
       console.log('Cargando medicamentos...');
-      const medicationsData = await getMedications(token);
+      const medicationsData = await getMedications();
       console.log('Medicamentos recibidos:', medicationsData);
       
-      // Cargar estado/historial de cada medicamento
-      const medicationsWithStatus = await Promise.all(
+      // Cargar intakes de cada medicamento
+      const medicationsWithIntakes = await Promise.all(
         medicationsData.map(async (med) => {
           try {
-            const statusData = await getMedicationsStatus(token);
-            const medStatus = statusData.find(status => status.id === med.id);
+            const intakes = await getMedicationIntakes(med.id);
+            const processedIntakes = processIntakes(intakes || []);
             
             return {
               ...med,
-              takenDates: medStatus?.takenDates || []
-              // Los campos ya vienen con los nombres correctos de la API
+              intakes: processedIntakes,
+              // Para compatibilidad con código existente
+              takenDates: processedIntakes.filter(intake => intake.taken)
             };
           } catch (err) {
-            console.warn(`Error cargando estado del medicamento ${med.id}:`, err);
+            console.warn(`Error cargando intakes del medicamento ${med.id}:`, err);
             return {
               ...med,
+              intakes: [],
               takenDates: []
-              // Los campos ya vienen con los nombres correctos de la API
             };
           }
         })
       );
       
-      setMedications(medicationsWithStatus);
+      setMedications(medicationsWithIntakes);
     } catch (err) {
       console.error("Error cargando medicamentos:", err);
       setError(err.message || "Error al cargar los medicamentos");
     } finally {
       setIsLoading(false);
     }
-  }, [token]);
+  }, []);
 
   // Toggle estado de medicamento
   const toggleMedication = useCallback(async (medicationId, date) => {
@@ -65,14 +106,21 @@ export function useMedications(token) {
       const medication = medications.find(m => m.id.toString() === medicationId.toString());
       if (!medication) throw new Error("Medicamento no encontrado");
       
-      const isTaken = medication.takenDates.some(takenDate => 
-        typeof takenDate === 'string' ? takenDate === date : takenDate.date === date
-      );
+      // Buscar el resumen del día para esta fecha
+      const dayIntake = medication.intakes?.find(intake => intake.date === date);
       
-      if (isTaken) {
-        await markSkipped(medicationId, token);
+      if (dayIntake) {
+        // Si ya existe un resumen para este día, toggle basado en su estado actual
+        if (dayIntake.status === 'TAKEN') {
+          // Si está completamente tomado, marcar como saltado
+          await markSkipped(medicationId, date);
+        } else {
+          // Si está pendiente, parcial o saltado, marcar como tomado
+          await markTaken(medicationId, date);
+        }
       } else {
-        await markTaken(medicationId, token);
+        // Si no existe intake para este día, crear uno como tomado
+        await markTaken(medicationId, date);
       }
       
       // Actualizar estado local
@@ -80,15 +128,38 @@ export function useMedications(token) {
         prev.map(med => {
           if (med.id.toString() !== medicationId.toString()) return med;
           
-          const newTakenDates = isTaken 
-            ? med.takenDates.filter(takenDate => 
-                typeof takenDate === 'string' ? takenDate !== date : takenDate.date !== date
-              )
-            : [...med.takenDates, { date, taken: true, timestamp: new Date().toISOString() }];
+          // Actualizar o crear el intake para esta fecha
+          const updatedIntakes = med.intakes ? [...med.intakes] : [];
+          const intakeIndex = updatedIntakes.findIndex(intake => intake.date === date);
+          
+          const currentIntake = updatedIntakes[intakeIndex];
+          let newStatus;
+          
+          if (currentIntake) {
+            // Toggle del estado existente
+            newStatus = currentIntake.status === 'TAKEN' ? 'SKIPPED' : 'TAKEN';
+            updatedIntakes[intakeIndex] = {
+              ...currentIntake,
+              status: newStatus,
+              taken: newStatus === 'TAKEN' || newStatus === 'PARTIAL'
+            };
+          } else {
+            // Crear nuevo intake como tomado
+            newStatus = 'TAKEN';
+            updatedIntakes.push({
+              date,
+              status: newStatus,
+              taken: true,
+              intakes: [], // Se llenará con la respuesta del servidor
+              totalIntakes: 1,
+              takenIntakes: 1
+            });
+          }
           
           return {
             ...med,
-            takenDates: newTakenDates
+            intakes: updatedIntakes,
+            takenDates: updatedIntakes.filter(intake => intake.taken)
           };
         })
       );
@@ -104,13 +175,13 @@ export function useMedications(token) {
         return newState;
       });
     }
-  }, [medications, token]);
+  }, [medications]);
 
   // Eliminar medicamento
   const deleteMedication = useCallback(async (medicationId) => {
     try {
       // TODO: Implementar endpoint de eliminación cuando esté disponible
-      // await deleteMedicationAPI(medicationId, token);
+      // await deleteMedicationAPI(medicationId);
       
       setMedications(prev => prev.filter(med => med.id.toString() !== medicationId.toString()));
     } catch (err) {
@@ -118,7 +189,34 @@ export function useMedications(token) {
       setError("Error al eliminar el medicamento");
       setTimeout(() => setError(null), 5000);
     }
-  }, [token]);
+  }, []);
+
+  // Función para obtener el estado de un medicamento en una fecha específica
+  const getMedicationStatusForDate = useCallback((medicationId, date) => {
+    const medication = medications.find(m => m.id.toString() === medicationId.toString());
+    if (!medication) return 'pending';
+    
+    const intake = medication.intakes?.find(intake => intake.date === date);
+    if (!intake) {
+      // Si no hay intake para esta fecha, verificar si está en el rango del medicamento
+      const startDate = new Date(medication.startDate);
+      const endDate = medication.endDate ? new Date(medication.endDate) : null;
+      const checkDate = new Date(date);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      checkDate.setHours(0, 0, 0, 0);
+      
+      if (checkDate < startDate) return 'upcoming';
+      if (endDate && checkDate > endDate) return 'expired';
+      if (checkDate < today) return 'ignored';
+      if (checkDate.getTime() === today.getTime()) return 'pending';
+      if (checkDate > today) return 'upcoming';
+      
+      return 'pending';
+    }
+    
+    return intake.status.toLowerCase();
+  }, [medications]);
 
   // Cargar medicamentos al montar el hook
   useEffect(() => {
@@ -142,6 +240,7 @@ export function useMedications(token) {
     isAnyActionLoading: Object.keys(actionLoading).length > 0,
     toggleMedication,
     deleteMedication,
+    getMedicationStatusForDate,
     refresh,
     clearError
   };
